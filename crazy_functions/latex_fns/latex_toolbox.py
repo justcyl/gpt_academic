@@ -465,7 +465,8 @@ def merge_tex_files(project_foler, main_file, mode):
         match_opt2 = pattern_opt2.search(main_file)
         if (match_opt1 is None) and (match_opt2 is None):
             # "Cannot find paper abstract section!"
-            main_file = insert_abstract(main_file)
+            # main_file = insert_abstract(main_file)
+            pass
         match_opt1 = pattern_opt1.search(main_file)
         match_opt2 = pattern_opt2.search(main_file)
         assert (match_opt1 is not None) or (

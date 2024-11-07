@@ -131,18 +131,18 @@ class LatexPaperSplit():
                 node_cnt += 1
                 line_cnt += translated_txt.count('\n')
 
-        if mode == 'translate_zh':
-            pattern = re.compile(r'\\begin\{abstract\}.*\n')
-            match = pattern.search(result_string)
-            if not match:
-                # match \abstract{xxxx}
-                pattern_compile = re.compile(r"\\abstract\{(.*?)\}", flags=re.DOTALL)
-                match = pattern_compile.search(result_string)
-                position = match.regs[1][0]
-            else:
-                # match \begin{abstract}xxxx\end{abstract}
-                position = match.end()
-            result_string = result_string[:position] + self.msg + msg +  result_string[position:]
+        # if mode == 'translate_zh':
+        #     pattern = re.compile(r'\\begin\{abstract\}.*\n')
+        #     match = pattern.search(result_string)
+        #     if not match:
+        #         # match \abstract{xxxx}
+        #         pattern_compile = re.compile(r"\\abstract\{(.*?)\}", flags=re.DOTALL)
+        #         match = pattern_compile.search(result_string)
+        #         position = match.regs[1][0]
+        #     else:
+        #         # match \begin{abstract}xxxx\end{abstract}
+        #         position = match.end()
+        #     result_string = result_string[:position] + self.msg + msg +  result_string[position:]
         return result_string
 
 
@@ -304,15 +304,17 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
-        if mode != 'translate_zh' or "binary" in final_tex: f.write(final_tex)
+        f.write(final_tex)
 
 
     #  <-------- 整理结果, 退出 ---------->
-    chatbot.append((f"完成了吗？", 'GPT结果已输出, 即将编译PDF'))
+    output_file = project_folder + f'/merge_{mode}.tex'
+    file_size = os.path.getsize(output_file) / 1024  # Convert to KB
+    chatbot.append((f"完成了吗？", f'GPT结果已输出, 即将编译PDF。输出文件大小: {file_size:.1f} KB'))
     yield from update_ui(chatbot=chatbot, history=history) # 刷新界面
 
     #  <-------- 返回 ---------->
-    return project_folder + f'/merge_{mode}.tex'
+    return output_file
 
 
 def remove_buggy_lines(file_path, log_path, tex_name, tex_name_pure, n_fix, work_folder_modified, fixed_line=[]):
