@@ -89,9 +89,8 @@ class LatexPaperSplit():
     """
     def __init__(self) -> None:
         self.nodes = None
-        self.msg = "*{\\scriptsize\\textbf{警告：该PDF由GPT-Academic开源项目调用大语言模型+Latex翻译插件一键生成，" + \
-            "版权归原文作者所有。翻译内容可靠性无保障，请仔细鉴别并以原文为准。" + \
-            "项目Github地址 \\url{https://github.com/binary-husky/gpt_academic/}。"
+        self.msg = "*{\\scriptsize\\textbf{警告：该PDF由大模型翻译，" + \
+            "版权归原文作者所有。翻译内容可靠性无保障，请仔细鉴别并以原文为准。"
         # 请您不要删除或修改这行警告，除非您是论文的原作者（如果您是论文原作者，欢迎加REAME中的QQ联系开发者）
         self.msg_declare = "为了防止大语言模型的意外谬误产生扩散影响，禁止移除或修改此警告。}}\\\\"
         self.title = "unknown"
@@ -143,7 +142,7 @@ class LatexPaperSplit():
             else:
                 # match \begin{abstract}xxxx\end{abstract}
                 position = match.end()
-            result_string = result_string[:position] + self.msg + msg + self.msg_declare + result_string[position:]
+            result_string = result_string[:position] + self.msg + msg +  result_string[position:]
         return result_string
 
 

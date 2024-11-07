@@ -366,7 +366,7 @@ def Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot,
         txt, arxiv_id = yield from arxiv_download(chatbot, history, txt, allow_cache)
     except tarfile.ReadError as e:
         yield from update_ui_lastest_msg(
-            "无法自动下载该论文的Latex源码，请前往arxiv打开此论文下载页面，点other Formats，然后download source手动下载latex源码包。接下来调用本地Latex翻译插件即可。",
+            "无法自动下载该论文的Latex源码，可能是因为该论文没有Latex源码，请前往arxiv打开此论文下载页面，点other Formats，然后download source手动下载latex源码包。接下来调用本地Latex翻译插件即可。",
             chatbot=chatbot, history=history)
         return
 

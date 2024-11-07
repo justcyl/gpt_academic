@@ -40,7 +40,7 @@ class PaperFileGroup():
     def merge_result(self):
         self.file_result = ["" for _ in range(len(self.file_paths))]
         for r, k in zip(self.sp_file_result, self.sp_file_index):
-            self.file_result[k] += r
+            self.file_result[k] += f"{r}\n\n"
 
     def write_result(self, language):
         manifest = []
@@ -199,7 +199,7 @@ def Markdown英译中(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_p
 
 @CatchException
 def Markdown中译英(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, user_request):
-    # 基本信息：功能、贡献者
+    # 基本信息：功能、��献者
     chatbot.append([
         "函数插件功能？",
         "对整个Markdown项目进行翻译。函数插件贡献者: Binary-Husky"])

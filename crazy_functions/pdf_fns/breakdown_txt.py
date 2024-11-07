@@ -71,6 +71,8 @@ def cut(limit, get_token_fn, txt_tocut, must_break_at_empty_line, break_anyway=F
                     # 不允许直接报错
                     raise RuntimeError(f"存在一行极长的文本！{remain_txt_to_cut}")
 
+            if must_break_at_empty_line:
+                prev += '\n\n'
             # 追加列表
             res.append(prev); fin_len+=len(prev)
             # 准备下一次迭代
