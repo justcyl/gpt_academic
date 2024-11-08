@@ -213,6 +213,111 @@ class LatexPaperFileGroup():
                 f.write(res)
         return manifest
 
+def adjust_table_widths(content, max_width=0.90, min_width=0.15):
+    """
+    智能调整 LaTeX 表格列宽
+    参数:
+        content (str): LaTeX 文档内容
+        max_width (float): 每列宽度相对于 \textwidth 的最大比例
+        min_width (float): 每列宽度相对于 \textwidth 的最小比例
+    返回:
+        str: 调整后的 LaTeX 文档内容
+    """
+    def extract_table_content(table_str):
+        """提取表格内容和列定义"""
+        # 提取列定义
+        col_def_match = re.search(r'\\begin{tabular}{([^}]*)}', table_str, re.DOTALL)
+        if not col_def_match:
+            return None, None, None
+                
+        col_def = col_def_match.group(1)
+        
+        # 提取表格内容
+        table_content = table_str[col_def_match.end():]
+        end_pos = table_content.find('\\end{tabular}')
+        if end_pos == -1:
+            return None, None, None
+                
+        table_content = table_content[:end_pos]
+        return col_def, table_content, table_str
+
+    def analyze_table_content(content):
+        """分析表格内容, 返回每列的最大内容长度"""
+        col_lengths = []
+        lines = content.split('\\\\')
+        for line in lines:
+            line = line.strip()
+            # 移除行中的 \hline 和 \cline 命令，而不是跳过整行
+            line = re.sub(r'\\(hline|cline{[^}]*})', '', line).strip()
+            if not line:  # 如果去除命令后行为空则跳过
+                continue
+            cells = line.split('&')
+            # 确保 col_lengths 长度与当前行的列数一致
+            if len(cells) > len(col_lengths):
+                col_lengths.extend([0] * (len(cells) - len(col_lengths)))
+            for i, cell in enumerate(cells):
+                # 清理 cell 内容，移除 LaTeX 命令
+                clean_cell = re.sub(r'\\[a-zA-Z]+\*?(?:\[[^\]]*\])?(?:\{[^}]*\})?', '', cell)
+                clean_cell = clean_cell.strip()
+                cell_length = len(clean_cell)
+                if cell_length > col_lengths[i]:
+                    col_lengths[i] = cell_length
+        return col_lengths
+
+    def get_column_spec(col_lengths, orig_spec):
+        """
+        生成新的列规格，所有列都使用p{}格式
+        参数:
+            col_lengths: 每列内容的长度列表
+            orig_spec: 原始的列格式规格
+        返回:
+            str: 新的列格式规格
+        """
+        if not col_lengths:
+            return orig_spec
+                
+        # 计算相对宽度
+        total_len = sum(col_lengths) or 1
+        widths = []
+        
+        for length in col_lengths:
+            if length <= 10:
+                widths.append('c')
+            else:
+                # 计算相对宽度，但确保不会太窄
+                width_ratio = length / total_len
+                width = max(min_width, width_ratio * max_width)
+                # 限制宽度不超过 1，以避免超过 \textwidth
+                width = min(width, 1.0)
+                widths.append(f"p{{{width:.2f}\\textwidth}}")
+                    
+        # 保留原始的垂直线
+        if orig_spec.startswith('|'):
+            new_spec = '|' + '|'.join(widths) + '|'
+        else:
+            new_spec = ''.join(widths)
+                
+        return new_spec
+
+    def process_table(match):
+        """处理单个表格"""
+        table_str = match.group(0)
+        col_def, content, full_str = extract_table_content(table_str)
+        
+        if not col_def or not content:
+            return table_str
+                
+        col_lengths = analyze_table_content(content)
+        new_spec = get_column_spec(col_lengths, col_def)
+        
+        # 保持原始内容，只替换列定义
+        return table_str.replace(f"{{tabular}}{{{col_def}}}", f"{{tabular}}{{{new_spec}}}")
+
+    # 匹配完整的表格环境，包括嵌套环境
+    # 使用非贪婪匹配，并考虑可能的换行符
+    logger.info(f'adjusting table widths')
+    pattern = r'\\begin{tabular}{[^}]*}.*?\\end{tabular}'
+    return re.sub(pattern, process_table, content, flags=re.DOTALL)
 
 def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, mode='proofread', switch_prompt=None, opts=[]):
     import time, os, re
@@ -241,6 +346,9 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
 
     with open(project_folder + '/merge.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(merged_content)
+
+    #  <-------- 调整latex表格列宽 ---------->
+    # merged_content = adjust_table_widths(merged_content)
 
     #  <-------- 精细切分latex文件 ---------->
     chatbot.append((f"Latex文件融合完成", f'[Local Message] 正在精细切分latex文件，这需要一段时间计算，文档越长耗时越长，请耐心等待。'))
@@ -303,6 +411,7 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     final_tex = lps.merge_result(pfg.file_result, mode, msg)
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
+    final_tex = adjust_table_widths(final_tex)
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(final_tex)
 
@@ -360,37 +469,51 @@ def 编译Latex(chatbot, history, main_file_original, main_file_modified, work_f
         if os.path.exists(may_exist_bbl) and not os.path.exists(target_bbl):
             shutil.copyfile(may_exist_bbl, target_bbl)
 
-        # https://stackoverflow.com/questions/738755/dont-make-me-manually-abort-a-latex-compile-when-theres-an-error
-        yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译原始PDF ...', chatbot, history)   # 刷新Gradio前端界面
-        ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
+        # 优先使用xelatex编译
+        yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 使用xelatex编译原始PDF ...', chatbot, history)
+        ok = compile_latex_with_timeout(f'xelatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
+        if not ok:
+            # 如果xelatex编译失败，尝试使用pdflatex编译
+            yield from update_ui_lastest_msg(f'xelatex编译失败，尝试使用pdflatex编译原始PDF ...', chatbot, history)
+            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
 
-        yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译转化后的PDF ...', chatbot, history)   # 刷新Gradio前端界面
-        ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
+        yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 使用xelatex编译转化后的PDF ...', chatbot, history)
+        ok = compile_latex_with_timeout(f'xelatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
+        if not ok:
+            # 如果xelatex编译失败，尝试使用pdflatex编译
+            yield from update_ui_lastest_msg(f'xelatex编译失败，尝试使用pdflatex编译转化后的PDF ...', chatbot, history)
+            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
 
         if ok and os.path.exists(pj(work_folder_modified, f'{main_file_modified}.pdf')):
             # 只有第二步成功，才能继续下面的步骤
-            yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译BibTex ...', chatbot, history)    # 刷新Gradio前端界面
+            yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译BibTex ...', chatbot, history)
             if not os.path.exists(pj(work_folder_original, f'{main_file_original}.bbl')):
                 ok = compile_latex_with_timeout(f'bibtex  {main_file_original}.aux', work_folder_original)
             if not os.path.exists(pj(work_folder_modified, f'{main_file_modified}.bbl')):
                 ok = compile_latex_with_timeout(f'bibtex  {main_file_modified}.aux', work_folder_modified)
 
-            yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译文献交叉引用 ...', chatbot, history)  # 刷新Gradio前端界面
-            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
-            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
-            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
-            ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
+            yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 编译文献交叉引用 ...', chatbot, history)
+            ok = compile_latex_with_timeout(f'xelatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
+            if not ok:
+                ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_original}.tex', work_folder_original)
+
+            ok = compile_latex_with_timeout(f'xelatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
+            if not ok:
+                ok = compile_latex_with_timeout(f'pdflatex -interaction=batchmode -file-line-error {main_file_modified}.tex', work_folder_modified)
 
             if mode!='translate_zh':
-                yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 使用latexdiff生成论文转化前后对比 ...', chatbot, history) # 刷新Gradio前端界面
-                logger.info(    f'latexdiff --encoding=utf8 --append-safecmd=subfile {work_folder_original}/{main_file_original}.tex  {work_folder_modified}/{main_file_modified}.tex --flatten > {work_folder}/merge_diff.tex')
+                yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 使用latexdiff生成论文转化前后对比 ...', chatbot, history)
+                logger.info(f'latexdiff --encoding=utf8 --append-safecmd=subfile {work_folder_original}/{main_file_original}.tex  {work_folder_modified}/{main_file_modified}.tex --flatten > {work_folder}/merge_diff.tex')
                 ok = compile_latex_with_timeout(f'latexdiff --encoding=utf8 --append-safecmd=subfile {work_folder_original}/{main_file_original}.tex  {work_folder_modified}/{main_file_modified}.tex --flatten > {work_folder}/merge_diff.tex', os.getcwd())
 
-                yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 正在编译对比PDF ...', chatbot, history)   # 刷新Gradio前端界面
-                ok = compile_latex_with_timeout(f'pdflatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
+                yield from update_ui_lastest_msg(f'尝试第 {n_fix}/{max_try} 次编译, 正在编译对比PDF ...', chatbot, history)
+                ok = compile_latex_with_timeout(f'xelatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
+                if not ok:
+                    ok = compile_latex_with_timeout(f'pdflatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
                 ok = compile_latex_with_timeout(f'bibtex    merge_diff.aux', work_folder)
-                ok = compile_latex_with_timeout(f'pdflatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
-                ok = compile_latex_with_timeout(f'pdflatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
+                ok = compile_latex_with_timeout(f'xelatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
+                if not ok:
+                    ok = compile_latex_with_timeout(f'pdflatex  -interaction=batchmode -file-line-error merge_diff.tex', work_folder)
 
         # <---------- 检查结果 ----------->
         results_ = ""

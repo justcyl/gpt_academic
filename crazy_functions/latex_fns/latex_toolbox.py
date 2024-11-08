@@ -444,7 +444,8 @@ def merge_tex_files(project_foler, main_file, mode):
         position = match.end()
         add_ctex = "\\usepackage{ctex}\n"
         add_url = "\\usepackage{url}\n" if "{url}" not in main_file else ""
-        main_file = main_file[:position] + add_ctex + add_url + main_file[position:]
+        add_listings = "\\usepackage{listings}\n" if "\\usepackage{listings}" not in main_file else ""
+        main_file = main_file[:position] + add_ctex + add_url + add_listings + main_file[position:]
         # fontset=windows
         import platform
 
@@ -459,19 +460,18 @@ def merge_tex_files(project_foler, main_file, mode):
             main_file,
         )
         # find paper abstract
-        pattern_opt1 = re.compile(r"\\begin\{abstract\}.*\n")
-        pattern_opt2 = re.compile(r"\\abstract\{(.*?)\}", flags=re.DOTALL)
-        match_opt1 = pattern_opt1.search(main_file)
-        match_opt2 = pattern_opt2.search(main_file)
-        if (match_opt1 is None) and (match_opt2 is None):
-            # "Cannot find paper abstract section!"
-            # main_file = insert_abstract(main_file)
-            pass
-        match_opt1 = pattern_opt1.search(main_file)
-        match_opt2 = pattern_opt2.search(main_file)
-        assert (match_opt1 is not None) or (
-            match_opt2 is not None
-        ), "Cannot find paper abstract section!"
+        # pattern_opt1 = re.compile(r"\\begin\{abstract\}.*\n")
+        # pattern_opt2 = re.compile(r"\\abstract\{(.*?)\}", flags=re.DOTALL)
+        # match_opt1 = pattern_opt1.search(main_file)
+        # match_opt2 = pattern_opt2.search(main_file)
+        # if (match_opt1 is None) and (match_opt2 is None):
+        #     "Cannot find paper abstract section!"
+        #     main_file = insert_abstract(main_file)
+        # match_opt1 = pattern_opt1.search(main_file)
+        # match_opt2 = pattern_opt2.search(main_file)
+        # assert (match_opt1 is not None) or (
+        #     match_opt2 is not None
+        # ), "Cannot find paper abstract section!"
     return main_file
 
 
