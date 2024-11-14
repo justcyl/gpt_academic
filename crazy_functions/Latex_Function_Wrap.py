@@ -48,7 +48,7 @@ class Arxiv_Localize(GptAcademicPluginTemplate):
         # 从云端下载翻译结果，以及上传翻译结果到云端；人人为我，我为人人。
         if allow_cloudio == "允许": plugin_kwargs["advanced_arg"] = "--allow-cloudio " + plugin_kwargs["advanced_arg"]
 
-        yield from Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, user_request)
+        yield from Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, user_request,  not_from_arxiv = False)
 
 
 

@@ -22,7 +22,7 @@ latex 翻译发送给 coder 模型优化排版
 
 论文翻译
 
-需要转为md方便召回
+需要转为md方便召回（html转md似乎也麻烦，还是用doc2x）
 
 > 调用doc2x：简单，但贵，而且可能不准确
 > latex转md
@@ -31,7 +31,7 @@ latex 翻译发送给 coder 模型优化排版
 
 其他：
 
-调 doc2x 转 md
+调 doc2x 转 md（一次parser多次export导出多种格式）
 
 md 翻译与召回
 

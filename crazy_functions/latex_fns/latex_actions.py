@@ -319,7 +319,7 @@ def adjust_table_widths(content, max_width=0.90, min_width=0.15):
     pattern = r'\\begin{tabular}{[^}]*}.*?\\end{tabular}'
     return re.sub(pattern, process_table, content, flags=re.DOTALL)
 
-def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, mode='proofread', switch_prompt=None, opts=[]):
+def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt,  mode='proofread', switch_prompt=None, opts=[], need_adjust_table_widths = True):
     import time, os, re
     from ..crazy_utils import request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency
     from .latex_actions import LatexPaperFileGroup, LatexPaperSplit
@@ -411,7 +411,9 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     final_tex = lps.merge_result(pfg.file_result, mode, msg)
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
-    final_tex = adjust_table_widths(final_tex)
+    if need_adjust_table_widths:
+        logger.info("调整表格")
+        final_tex = adjust_table_widths(final_tex)
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(final_tex)
 

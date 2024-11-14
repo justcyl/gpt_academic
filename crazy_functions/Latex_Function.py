@@ -333,7 +333,7 @@ def Latex英文纠错加PDF对比(txt, llm_kwargs, plugin_kwargs, chatbot, histo
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 插件主程序2 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 @CatchException
-def Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, user_request):
+def Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt, user_request, not_from_arxiv = True):
     # <-------------- information about this plugin ------------->
     chatbot.append([
         "函数插件功能？",
@@ -420,7 +420,7 @@ def Latex翻译中文并重新编译PDF(txt, llm_kwargs, plugin_kwargs, chatbot,
     if not os.path.exists(project_folder + '/merge_translate_zh.tex'):
         yield from Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs,
                                        chatbot, history, system_prompt, mode='translate_zh',
-                                       switch_prompt=_switch_prompt_)
+                                       switch_prompt=_switch_prompt_, need_adjust_table_widths = not_from_arxiv)
 
     # <-------------- compile PDF ------------->
     success = yield from 编译Latex(chatbot, history, main_file_original='merge',
