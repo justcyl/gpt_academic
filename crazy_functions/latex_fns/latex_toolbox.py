@@ -287,21 +287,31 @@ def find_main_tex_file(file_manifest, mode):
     在多Tex文档中，寻找主文件，必须包含documentclass，返回找到的第一个。
     P.S. 但愿没人把latex模板放在里面传进来 (6.25 加入判定latex模板的代码)
     """
-    canidates = []
+    candidates = []
+    # for texf in file_manifest:
+    #     if os.path.basename(texf).startswith("merge"):
+    #         continue
+    #     with open(texf, "r", encoding="utf8", errors="ignore") as f:
+    #         file_content = f.read()
+    #     if r"\documentclass" in file_content:
+    #         canidates.append(texf)
+    #     else:
+    #         continue
+    
     for texf in file_manifest:
         if os.path.basename(texf).startswith("merge"):
             continue
         with open(texf, "r", encoding="utf8", errors="ignore") as f:
-            file_content = f.read()
-        if r"\documentclass" in file_content:
-            canidates.append(texf)
-        else:
-            continue
+            file_content = f.readlines()  # 按行读取文件
+        for line in file_content:
+            if re.match(r"^\s*\\documentclass", line):  # 使用正则表达式匹配行首的\documentclass
+                candidates.append(texf)
+                break  # 找到后直接跳出行循环，避免重复检查同一个文件
 
-    if len(canidates) == 0:
+    if len(candidates) == 0:
         raise RuntimeError("无法找到一个主Tex文件（包含documentclass关键字）")
-    elif len(canidates) == 1:
-        return canidates[0]
+    elif len(candidates) == 1:
+        return candidates[0]
     else:  # if len(canidates) >= 2 通过一些Latex模板中常见（但通常不会出现在正文）的单词，对不同latex源文件扣分，取评分最高者返回
         canidates_score = []
         # 给出一些判定模板文档的词作为扣分项
@@ -316,7 +326,7 @@ def find_main_tex_file(file_manifest, mode):
             "reviewers",
         ]
         expected_words = ["\\input", "\\ref", "\\cite"]
-        for texf in canidates:
+        for texf in candidates:
             canidates_score.append(0)
             with open(texf, "r", encoding="utf8", errors="ignore") as f:
                 file_content = f.read()
@@ -328,7 +338,7 @@ def find_main_tex_file(file_manifest, mode):
                 if uw in file_content:
                     canidates_score[-1] += 1
         select = np.argmax(canidates_score)  # 取评分最高者返回
-        return canidates[select]
+        return candidates[select]
 
 
 def rm_comments(main_file):
@@ -440,7 +450,7 @@ def merge_tex_files(project_foler, main_file, mode):
         # find paper documentclass
         pattern = re.compile(r"\\documentclass.*\n")
         match = pattern.search(main_file)
-        assert match is not None, "Cannot find documentclass statement!"
+        assert match is not None, f"Cannot find documentclass statement!{main_file}"
         position = match.end()
         add_ctex = "\\usepackage{ctex}\n"
         add_url = "\\usepackage{url}\n" if "{url}" not in main_file else ""
