@@ -319,28 +319,46 @@ def adjust_table_widths(content, max_width=0.90, min_width=0.15):
     pattern = r'\\begin{tabular}{[^}]*}.*?\\end{tabular}'
     return re.sub(pattern, process_table, content, flags=re.DOTALL)
 
-def remove_pdfoutput_advanced(final_tex: str) -> str:
+def clean_tex_for_xelatex(final_tex: str) -> str:
     """
-    Remove '\pdfoutput=1' line from LaTeX text with advanced matching
+    Remove commands that are unnecessary for XeLaTeX compilation
     
     Args:
         final_tex (str): Input LaTeX text
     
     Returns:
-        str: LaTeX text with '\pdfoutput=1' line removed
+        str: Cleaned LaTeX text
     """
     import re
     
-    # 匹配以下情况：
-    # 1. \pdfoutput=1
-    # 2. \pdfoutput = 1
-    # 3. % \pdfoutput=1 (带注释)
-    # 4. 行首可能有空格
-    pattern = r'^\s*%?\s*\\pdfoutput\s*=\s*1\s*$'
+    # 需要删除的模式
+    patterns = [
+        # PDF相关设置
+        r'^\s*%?\s*\\pdfoutput\s*=\s*\d+\s*$',
+        r'^\s*%?\s*\\pdfcompresslevel\s*=\s*\d+\s*$',
+        r'^\s*%?\s*\\pdfobjcompresslevel\s*=\s*\d+\s*$',
+        r'^\s*%?\s*\\pdfminorversion\s*=\s*\d+\s*$',
+        
+        # # inputenc包
+        # r'^\s*\\usepackage\[utf8\]\{inputenc\}\s*$',
+        # r'^\s*\\inputencoding\{utf8\}\s*$',
+        
+        # # fontenc包（在XeLaTeX中通常不需要）
+        # r'^\s*\\usepackage\[T1\]\{fontenc\}\s*$',
+        
+        # pdfinfo设置
+        r'^\s*\\pdfinfo\{[^}]*\}\s*$'
+    ]
     
-    # 分割成行，过滤掉匹配的行，然后重新组合
+    # 合并所有模式
+    combined_pattern = '|'.join(f'(?:{pattern})' for pattern in patterns)
+    
+    # 分割成行，过滤掉匹配的行
     lines = final_tex.splitlines()
-    filtered_lines = [line for line in lines if not re.match(pattern, line)]
+    filtered_lines = [line for line in lines 
+                     if not re.match(combined_pattern, line)]
+    
+    # 重新组合文本
     return '\n'.join(filtered_lines)
 
 def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt,  mode='proofread', switch_prompt=None, opts=[], need_adjust_table_widths = True):
@@ -435,11 +453,14 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     final_tex = lps.merge_result(pfg.file_result, mode, msg)
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
+    # 如果是 doc2x 转换的调整表格
     if need_adjust_table_widths:
         logger.info("调整表格")
         final_tex = adjust_table_widths(final_tex)
 
-    final_tex = remove_pdfoutput_advanced(final_tex)
+    # 删除 pdflatex 无用的命令
+    final_tex = clean_tex_for_xelatex(final_tex)
+
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(final_tex)
 
