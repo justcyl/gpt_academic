@@ -319,6 +319,30 @@ def adjust_table_widths(content, max_width=0.90, min_width=0.15):
     pattern = r'\\begin{tabular}{[^}]*}.*?\\end{tabular}'
     return re.sub(pattern, process_table, content, flags=re.DOTALL)
 
+def remove_pdfoutput_advanced(final_tex: str) -> str:
+    """
+    Remove '\pdfoutput=1' line from LaTeX text with advanced matching
+    
+    Args:
+        final_tex (str): Input LaTeX text
+    
+    Returns:
+        str: LaTeX text with '\pdfoutput=1' line removed
+    """
+    import re
+    
+    # 匹配以下情况：
+    # 1. \pdfoutput=1
+    # 2. \pdfoutput = 1
+    # 3. % \pdfoutput=1 (带注释)
+    # 4. 行首可能有空格
+    pattern = r'^\s*%?\s*\\pdfoutput\s*=\s*1\s*$'
+    
+    # 分割成行，过滤掉匹配的行，然后重新组合
+    lines = final_tex.splitlines()
+    filtered_lines = [line for line in lines if not re.match(pattern, line)]
+    return '\n'.join(filtered_lines)
+
 def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt,  mode='proofread', switch_prompt=None, opts=[], need_adjust_table_widths = True):
     import time, os, re
     from ..crazy_utils import request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency
@@ -414,6 +438,8 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     if need_adjust_table_widths:
         logger.info("调整表格")
         final_tex = adjust_table_widths(final_tex)
+
+    final_tex = remove_pdfoutput_advanced(final_tex)
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(final_tex)
 
