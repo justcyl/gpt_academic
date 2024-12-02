@@ -333,33 +333,27 @@ def clean_tex_for_xelatex(final_tex: str) -> str:
     
     # 需要删除的模式
     patterns = [
-        # PDF相关设置
+        # PDF相关设置（单行）
         r'^\s*%?\s*\\pdfoutput\s*=\s*\d+\s*$',
         r'^\s*%?\s*\\pdfcompresslevel\s*=\s*\d+\s*$',
         r'^\s*%?\s*\\pdfobjcompresslevel\s*=\s*\d+\s*$',
         r'^\s*%?\s*\\pdfminorversion\s*=\s*\d+\s*$',
         
-        # # inputenc包
-        # r'^\s*\\usepackage\[utf8\]\{inputenc\}\s*$',
-        # r'^\s*\\inputencoding\{utf8\}\s*$',
-        
-        # # fontenc包（在XeLaTeX中通常不需要）
-        # r'^\s*\\usepackage\[T1\]\{fontenc\}\s*$',
-        
-        # pdfinfo设置
-        r'^\s*\\pdfinfo\{[^}]*\}\s*$'
+        # pdfinfo设置（多行）
+        r'^\s*\\pdfinfo\s*\{.*?^\s*\}\s*$'
     ]
     
-    # 合并所有模式
+    # 使用re.MULTILINE和re.DOTALL标志
     combined_pattern = '|'.join(f'(?:{pattern})' for pattern in patterns)
     
-    # 分割成行，过滤掉匹配的行
-    lines = final_tex.splitlines()
-    filtered_lines = [line for line in lines 
-                     if not re.match(combined_pattern, line)]
+    # 使用re.sub删除匹配的块
+    cleaned_tex = re.sub(combined_pattern, '', final_tex, flags=re.MULTILINE | re.DOTALL)
     
-    # 重新组合文本
-    return '\n'.join(filtered_lines)
+    # 删除可能产生的连续空行
+    cleaned_tex = re.sub(r'\n\s*\n', '\n', cleaned_tex)
+    
+    return cleaned_tex.strip()
+
 
 def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt,  mode='proofread', switch_prompt=None, opts=[], need_adjust_table_widths = True):
     import time, os, re
