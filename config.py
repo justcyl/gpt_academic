@@ -33,7 +33,7 @@ else:
 # [step 3]>> 模型选择是 (注意: LLM_MODEL是默认选中的模型, 它*必须*被包含在AVAIL_LLM_MODELS列表中 )
 LLM_MODEL = "chatgpt-4o-latest" # 可选 ↓↓↓
 AVAIL_LLM_MODELS = ["chatgpt-4o-latest",  "gemini-1.5-pro-002", "claude-3-5-sonnet-20241022",
-                    "deepseek-chat", "gpt-4o-mini", "claude-3-5-haiku-20241022", "gemini-1.5-flash-002"
+                    "deepseek-chat", "gpt-4o-mini", "claude-3-5-haiku-20241022", "gemini-1.5-flash-002", "deepseek-ai/DeepSeek-V2.5"
                     ]
 # AVAIL_LLM_MODELS = ["gpt-4-1106-preview", "gpt-4-turbo-preview", "gpt-4-vision-preview",
 #                     "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4-turbo-2024-04-09",
@@ -73,7 +73,8 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 # 举例: API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "https://reverse-proxy-url/v1/chat/completions", "http://localhost:11434/api/chat": "在这里填写您ollama的URL"}
 API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "https://chatapi.nloli.xyz/v1/chat/completions",
                     "https://api.anthropic.com/v1/messages": "https://chatapi.nloli.xyz/v1/messages",
-                    "https://generativelanguage.googleapis.com/v1beta/models": "https://chatapi.nloli.xyz/v1beta/models" }
+                    "https://generativelanguage.googleapis.com/v1beta/models": "https://chatapi.nloli.xyz/v1beta/models",
+                     "https://api.deepseek.com/v1/chat/completions":  "https://chatapi.nloli.xyz/v1/chat/completions"}
 
 
 # 多线程函数插件中，默认允许多少路线程同时访问OpenAI。Free trial users的限制是每分钟3次，Pay-as-you-go users的限制是每分钟3500次
@@ -241,7 +242,8 @@ YIMODEL_API_KEY = ""
 
 
 # 深度求索(DeepSeek) API KEY，默认请求地址为"https://api.deepseek.com/v1/chat/completions"
-DEEPSEEK_API_KEY = "sk-bfb30b5318ea4a6690dd2b927fdd0562"
+DEEPSEEK_API_KEY = "sk-Ok07tRnnrfS5StSQ07DaC35a43Ec4840A4E37e1bC6C21034"
+# DEEPSEEK_API_KEY = "sk-bfb30b5318ea4a6690dd2b927fdd0562"
 
 
 # 紫东太初大模型 https://ai-maas.wair.ac.cn

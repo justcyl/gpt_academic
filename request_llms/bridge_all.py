@@ -328,6 +328,7 @@ model_info = {
         "token_cnt": get_token_num_gpt4,
     },
 
+    
     # 智谱AI
     "glm-4": {
         "fn_with_ui": zhipu_ui,
@@ -995,7 +996,7 @@ if "deepseekcoder" in AVAIL_LLM_MODELS:   # deepseekcoder
     except:
         logger.error(trimmed_format_exc())
 # -=-=-=-=-=-=- 幻方-深度求索大模型在线API -=-=-=-=-=-=-
-if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS:
+if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS or "deepseek-ai/DeepSeek-V2.5" in AVAIL_LLM_MODELS:
     try:
         deepseekapi_noui, deepseekapi_ui = get_predict_function(
             api_key_conf_name="DEEPSEEK_API_KEY", max_output_token=4096, disable_proxy=False
@@ -1016,6 +1017,15 @@ if "deepseek-chat" in AVAIL_LLM_MODELS or "deepseek-coder" in AVAIL_LLM_MODELS:
                 "endpoint": deepseekapi_endpoint,
                 "can_multi_thread": True,
                 "max_token": 16000,
+                "tokenizer": tokenizer_gpt35,
+                "token_cnt": get_token_num_gpt35,
+            },
+            "deepseek-ai/DeepSeek-V2.5": {
+                "fn_with_ui": deepseekapi_ui,
+                "fn_without_ui": deepseekapi_noui,
+                "endpoint": deepseekapi_endpoint,
+                "can_multi_thread": True,
+                "max_token": 32000,
                 "tokenizer": tokenizer_gpt35,
                 "token_cnt": get_token_num_gpt35,
             },
