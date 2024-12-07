@@ -7,8 +7,12 @@
     Configuration reading priority: environment variable > config_private.py > config.py
 """
 
+PAOLUZ_API = {"key": "sk-Ok07tRnnrfS5StSQ07DaC35a43Ec4840A4E37e1bC6C21034", "url": "https://chatapi.nloli.xyz/v1/chat/completions"}
+YUNWU_API = {"key": "sk-xHS2rhQATAzBZQzNlCQVy0Up3vgfF4cdlAqKu7GiIn8kvcE8", "url": "https://yunwu.ai/v1/chat/completions"}
+
+THIRD_API = PAOLUZ_API
 # [step 1]>> API_KEY = "sk-123456789xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx123456789"。极少数情况下，还需要填写组织（格式如org-123456789abcdefghijklmno的），请向下翻，找 API_ORG 设置项
-API_KEY = "sk-Ok07tRnnrfS5StSQ07DaC35a43Ec4840A4E37e1bC6C21034"    # 可同时填写多个API-KEY，用英文逗号分割，例如API_KEY = "sk-openaikey1,sk-openaikey2,fkxxxx-api2dkey3,azure-apikey4"
+API_KEY =  THIRD_API["key"]   # 可同时填写多个API-KEY，用英文逗号分割，例如API_KEY = "sk-openaikey1,sk-openaikey2,fkxxxx-api2dkey3,azure-apikey4"
 
 
 # [step 2]>> 改为True应用代理，如果直接在海外服务器部署，此处不修改；如果使用本地或无地域限制的大模型时，此处也不需要修改
@@ -31,9 +35,11 @@ else:
     proxies = None
 
 # [step 3]>> 模型选择是 (注意: LLM_MODEL是默认选中的模型, 它*必须*被包含在AVAIL_LLM_MODELS列表中 )
-LLM_MODEL = "chatgpt-4o-latest" # 可选 ↓↓↓
-AVAIL_LLM_MODELS = ["chatgpt-4o-latest",  "gemini-1.5-pro-002", "claude-3-5-sonnet-20241022",
-                    "deepseek-chat", "gpt-4o-mini", "claude-3-5-haiku-20241022", "gemini-1.5-flash-002", "deepseek-ai/DeepSeek-V2.5"
+LLM_MODEL = "m-chatgpt-4o-latest" # 可选 ↓↓↓
+AVAIL_LLM_MODELS = ["m-chatgpt-4o-latest", "m-gpt-4o-2024-11-20", "m-gpt-4o-mini-2024-07-18",
+                    "m-gemini-1.5-pro-002", "m-gemini-1.5-flash(max_token=64000)",
+                    "m-claude-3-5-sonnet-20241022",
+                    "m-deepseek-ai/DeepSeek-V2.5(max_token=32000)",
                     ]
 # AVAIL_LLM_MODELS = ["gpt-4-1106-preview", "gpt-4-turbo-preview", "gpt-4-vision-preview",
 #                     "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4-turbo-2024-04-09",
@@ -43,6 +49,9 @@ AVAIL_LLM_MODELS = ["chatgpt-4o-latest",  "gemini-1.5-pro-002", "claude-3-5-sonn
 #                     ]
 
 EMBEDDING_MODEL = "text-embedding-3-small"
+
+# 定义界面上“询问多个GPT模型”插件应该使用哪些模型，请从AVAIL_LLM_MODELS中选择，并在不同模型之间用`&`间隔，例如"gpt-3.5-turbo&chatglm3&azure-gpt-4"
+MULTI_QUERY_LLM_MODELS = "m-chatgpt-4o-latest&m-deepseek-chat&m-gemini-1.5-pro-002&m-claude-3-5-sonnet-20241022"
 
 # --- --- --- ---
 # P.S. 其他可用的模型还包括
@@ -71,15 +80,15 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 # 重新URL重新定向，实现更换API_URL的作用（高危设置! 常规情况下不要修改! 通过修改此设置，您将把您的API-KEY和对话隐私完全暴露给您设定的中间人！）
 # 格式: API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "在这里填写重定向的api.openai.com的URL"}
 # 举例: API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "https://reverse-proxy-url/v1/chat/completions", "http://localhost:11434/api/chat": "在这里填写您ollama的URL"}
-API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "https://chatapi.nloli.xyz/v1/chat/completions",
-                    "https://api.anthropic.com/v1/messages": "https://chatapi.nloli.xyz/v1/messages",
-                    "https://generativelanguage.googleapis.com/v1beta/models": "https://chatapi.nloli.xyz/v1beta/models",
-                     "https://api.deepseek.com/v1/chat/completions":  "https://chatapi.nloli.xyz/v1/chat/completions"}
-
+# API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": "https://chatapi.nloli.xyz/v1/chat/completions",
+#                     "https://api.anthropic.com/v1/messages": "https://chatapi.nloli.xyz/v1/chat/completions",
+#                     "https://generativelanguage.googleapis.com/v1beta/models": "https://chatapi.nloli.xyz/v1/chat/completions",
+#                      "https://api.deepseek.com/v1/chat/completions":  "https://chatapi.nloli.xyz/v1/chat/completions"}
+API_URL_REDIRECT = {"https://api.openai.com/v1/chat/completions": THIRD_API["url"]}
 
 # 多线程函数插件中，默认允许多少路线程同时访问OpenAI。Free trial users的限制是每分钟3次，Pay-as-you-go users的限制是每分钟3500次
 # 一言以蔽之：免费（5刀）用户填3，OpenAI绑了信用卡的用户可以填 16 或者更高。提高限制请查询：https://platform.openai.com/docs/guides/rate-limits/overview
-DEFAULT_WORKER_NUM = 32
+DEFAULT_WORKER_NUM = 16
 
 
 # 色彩主题, 可选 ["Default", "Chuanhu-Small-and-Beautiful", "High-Contrast"]
@@ -128,8 +137,7 @@ MAX_RETRY = 2
 DEFAULT_FN_GROUPS = ['对话', '编程', '学术', '智能体']
 
 
-# 定义界面上“询问多个GPT模型”插件应该使用哪些模型，请从AVAIL_LLM_MODELS中选择，并在不同模型之间用`&`间隔，例如"gpt-3.5-turbo&chatglm3&azure-gpt-4"
-MULTI_QUERY_LLM_MODELS = "chatgpt-4o-latest&deepseek-chat&gemini-1.5-pro-002&claude-3-5-sonnet-20241022"
+
 
 
 # 选择本地模型变体（只有当AVAIL_LLM_MODELS包含了对应本地模型时，才会起作用）

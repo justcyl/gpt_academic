@@ -515,6 +515,9 @@ def generate_payload(inputs:str, llm_kwargs:dict, history:list, system_prompt:st
     if llm_kwargs['llm_model'].startswith('one-api-'):
         model = llm_kwargs['llm_model'][len('one-api-'):]
         model, _ = read_one_api_model_name(model)
+    if llm_kwargs['llm_model'].startswith('m-'):
+        model = llm_kwargs['llm_model'][len('m-'):]
+        model, _ = read_one_api_model_name(model)
     if llm_kwargs['llm_model'].startswith('vllm-'):
         model = llm_kwargs['llm_model'][len('vllm-'):]
         model, _ = read_one_api_model_name(model)
