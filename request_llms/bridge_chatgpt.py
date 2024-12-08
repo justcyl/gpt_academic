@@ -134,6 +134,7 @@ def predict_no_ui_long_connection(inputs:str, llm_kwargs:dict, history:list=[], 
     observe_window = None：
         用于负责跨越线程传递已经输出的部分，大部分时候仅仅为了fancy的视觉效果，留空即可。observe_window[0]：观测窗。observe_window[1]：看门狗
     """
+    # logger.info(f"llm_kwargs: {llm_kwargs}")
     from request_llms.bridge_all import model_info
 
     watch_dog_patience = 5 # 看门狗的耐心, 设置5秒即可

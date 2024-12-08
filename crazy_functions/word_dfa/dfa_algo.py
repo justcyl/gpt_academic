@@ -2100,7 +2100,7 @@ AITD-02087|Zero Padding|零填充||[1]||
 AITD-02088|Zero Tensor|零张量||[1]||
 AITD-02089|Zero-Centered|零中心化的||[1]||
 AITD-02090|Zero-Data Learning|零数据学习||[1]||
-AITD-02091|Zero-Shot Learning|零试学习||[[1]](https://www.jiqizhixin.com/articles/2017-03-31-6)||
+AITD-02091|Zero-Shot Learning|零样本学习||[[1]](https://www.jiqizhixin.com/articles/2017-03-31-6)||
 AITD-02092|Zipf's Law|齐普夫定律||[1]||
 AITD-02093|ε-Greedy Method|ε-贪心法||[1]||
 AITD-02094|2D Qsar Models|二维定量构效关系模型| |[[1]](https://pubs.rsc.org/en/content/chapter/bk9781788017893-00037/978-1-78801-789-3)|化学|
@@ -2686,6 +2686,14 @@ class DFA:
                         found = True
         return found_terms
 
+def search_spec_terms(x):
+    # 创建DFA
+    dfa = DFA()
+
+    # 搜索专有名词
+    found_terms = dfa.search(x)
+    return found_terms
+
 def main():
 
     # 创建DFA
@@ -2701,6 +2709,7 @@ def main():
     # 打印找到的术语
     for term in found_terms:  # 使用set去重
         print(f"找到术语: {term}")
+
 
 if __name__ == "__main__":
     main()
