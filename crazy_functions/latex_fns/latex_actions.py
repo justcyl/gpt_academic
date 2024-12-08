@@ -434,6 +434,10 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
         pfg.sp_file_result = []
         for i_say, gpt_say, orig_content in zip(gpt_response_collection[0::2], gpt_response_collection[1::2], pfg.sp_file_contents):
             pfg.sp_file_result.append(gpt_say)
+            # 如果 orig_content 末尾有换行符，则 gpt_say 也加一个换行符
+            if orig_content.endswith('\n') and not gpt_say.endswith('\n'):
+                pfg.sp_file_result[-1] += '\n'
+
         pfg.merge_result()
 
         # <-------- 临时存储用于调试 ---------->
@@ -454,6 +458,9 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
 
     # 删除 pdflatex 无用的命令
     final_tex = clean_tex_for_xelatex(final_tex)
+
+    # 遍历 project_folder 中的pdf，如果pdf版本大于1.4，降级到1.4
+    # downgrade_pdf_version(project_folder)
 
     with open(project_folder + f'/merge_{mode}.tex', 'w', encoding='utf-8', errors='replace') as f:
         f.write(final_tex)

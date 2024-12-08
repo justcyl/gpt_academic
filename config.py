@@ -35,11 +35,11 @@ else:
     proxies = None
 
 # [step 3]>> 模型选择是 (注意: LLM_MODEL是默认选中的模型, 它*必须*被包含在AVAIL_LLM_MODELS列表中 )
-LLM_MODEL = "m-chatgpt-4o-latest" # 可选 ↓↓↓
+LLM_MODEL = "m-deepseek-ai/DeepSeek-V2.5(max_token=32000)" # 可选 ↓↓↓
 AVAIL_LLM_MODELS = ["m-chatgpt-4o-latest", "m-gpt-4o-2024-11-20", "m-gpt-4o-mini-2024-07-18",
                     "m-gemini-1.5-pro-002", "m-gemini-1.5-flash",
                     "m-claude-3-5-sonnet-20241022",
-                    "m-deepseek-ai/DeepSeek-V2.5",
+                    "m-deepseek-ai/DeepSeek-V2.5(max_token=32000)",
                     ]
 # AVAIL_LLM_MODELS = ["gpt-4-1106-preview", "gpt-4-turbo-preview", "gpt-4-vision-preview",
 #                     "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4-turbo-2024-04-09",
