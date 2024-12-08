@@ -50,8 +50,6 @@ AVAIL_LLM_MODELS = ["m-chatgpt-4o-latest", "m-gpt-4o-2024-11-20", "m-gpt-4o-mini
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 
-# 定义界面上“询问多个GPT模型”插件应该使用哪些模型，请从AVAIL_LLM_MODELS中选择，并在不同模型之间用`&`间隔，例如"gpt-3.5-turbo&chatglm3&azure-gpt-4"
-MULTI_QUERY_LLM_MODELS = "m-chatgpt-4o-latest&m-deepseek-chat&m-gemini-1.5-pro-002&m-claude-3-5-sonnet-20241022"
 
 # --- --- --- ---
 # P.S. 其他可用的模型还包括
@@ -137,7 +135,8 @@ MAX_RETRY = 2
 DEFAULT_FN_GROUPS = ['对话', '编程', '学术', '智能体']
 
 
-
+# 定义界面上“询问多个GPT模型”插件应该使用哪些模型，请从AVAIL_LLM_MODELS中选择，并在不同模型之间用`&`间隔，例如"gpt-3.5-turbo&chatglm3&azure-gpt-4"
+MULTI_QUERY_LLM_MODELS = "m-chatgpt-4o-latest&m-deepseek-chat&m-gemini-1.5-pro-002&m-claude-3-5-sonnet-20241022"
 
 
 # 选择本地模型变体（只有当AVAIL_LLM_MODELS包含了对应本地模型时，才会起作用）
@@ -275,8 +274,8 @@ CUSTOM_API_KEY_PATTERN = ""
 GEMINI_API_KEY = 'sk-Ok07tRnnrfS5StSQ07DaC35a43Ec4840A4E37e1bC6C21034'
 
 
-# HUGGINGFACE的TOKEN，下载LLAMA时起作用 https://huggingface.co/docs/hub/security-tokens
-HUGGINGFACE_ACCESS_TOKEN = "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"
+# Searxng互联网检索服务（这是一个huggingface空间，请前往huggingface复制该空间，然后把自己新的空间地址填在这里）
+SEARXNG_URLS = [ f"https://kaletianlre-beardvs{i}dd.hf.space/" for i in range(1,5) ]
 
 
 # GROBID服务器地址（填写多个可以均衡负载），用于高质量地读取PDF文档
@@ -324,6 +323,9 @@ PLUGIN_HOT_RELOAD = False
 # 自定义按钮的最大数量限制
 NUM_CUSTOM_BASIC_BTN = 4
 
+
+# 媒体智能体的服务地址（这是一个huggingface空间，请前往huggingface复制该空间，然后把自己新的空间地址填在这里）
+DAAS_SERVER_URLS = [ f"https://niuziniu-biligpt{i}.hf.space/stream" for i in range(1,5) ]
 
 
 """
@@ -414,7 +416,7 @@ NUM_CUSTOM_BASIC_BTN = 4
 插件在线服务配置依赖关系示意图
 │
 ├── 互联网检索
-│   └── SEARXNG_URL
+│   └── SEARXNG_URLS
 │
 ├── 语音功能
 │   ├── ENABLE_AUDIO
