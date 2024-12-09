@@ -434,10 +434,11 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
         pfg.sp_file_result = []
         for i_say, gpt_say, orig_content in zip(gpt_response_collection[0::2], gpt_response_collection[1::2], pfg.sp_file_contents):
             pfg.sp_file_result.append(gpt_say)
+            logger.info(f"=> {orig_content}】: {gpt_say}")
             # 如果 orig_content 末尾有换行符，则 gpt_say 也加一个换行符
-            if orig_content.endswith('\n') and not gpt_say.endswith('\n'):
-                pfg.sp_file_result[-1] += '\n'
-
+            # if orig_content.endswith('\n') and not gpt_say.endswith('\n'):
+            #     pfg.sp_file_result[-1] += '\n'
+            
         pfg.merge_result()
 
         # <-------- 临时存储用于调试 ---------->

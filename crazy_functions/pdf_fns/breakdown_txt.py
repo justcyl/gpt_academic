@@ -57,8 +57,8 @@ def cut(limit, get_token_fn, txt_tocut, must_break_at_empty_line, break_anyway=F
                     # 首先尝试用双空行（\n\n）作为切分点
                     if lines[cnt] != "":
                         continue
-                prev = "\n".join(lines[:cnt]) + "\n"
-                post = "\n" + "\n".join(lines[cnt:])
+                prev = "\n".join(lines[:cnt])
+                post = "\n".join(lines[cnt:])
                 if get_token_fn(prev) < limit:
                     break
 
