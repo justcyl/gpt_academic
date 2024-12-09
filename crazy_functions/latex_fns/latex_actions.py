@@ -354,7 +354,51 @@ def clean_tex_for_xelatex(final_tex: str) -> str:
     
     return cleaned_tex.strip()
 
+import pikepdf
+def downgrade_pdf_version(folder: str, version: str = "1.4") -> None:
+    """
+    递归遍历文件夹及其所有子文件夹，将找到的 PDF 文件版本降级到指定版本。
 
+    Args:
+        folder (str): 要处理的文件夹路径
+        version (str, optional): 目标 PDF 版本。默认为 "1.4"
+
+    Returns:
+        None
+    """
+    try:
+        # 使用 os.walk 递归遍历文件夹
+        for root, dirs, files in os.walk(folder):
+            for filename in files:
+                if filename.lower().endswith('.pdf') == False:
+                    continue
+                file_path = os.path.join(root, filename)
+                logger.info(f"Processing: {file_path}")
+                
+                try:
+                    # 打开并保存 PDF 文件
+                    with pikepdf.open(file_path) as pdf:
+                        # 获取原始版本
+                        original_version = pdf.pdf_version
+                        # 将版本号分解为主版本号和次版本号进行比较
+                        orig_major, orig_minor = str(original_version).split('.')
+                        target_major, target_minor = version.split('.')
+                        
+                        # 转换为整数进行比较
+                        if (int(orig_major) > int(target_major) or 
+                            (int(orig_major) == int(target_major) and int(orig_minor) > int(target_minor))):
+                            pdf.save(file_path, version=version)
+                            logger.info(f"Successfully downgraded {filename} from version {original_version} to {version}")
+                        else:
+                            logger.info(f"Skipping {filename}: already at version {original_version} (≤ {version})")
+                            
+                except Exception as e:
+                    logger.error(f"Failed to process {filename}: {str(e)}")
+                    continue
+                        
+    except Exception as e:
+        logger.error(f"Error accessing folder {folder}: {str(e)}")
+                
 def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin_kwargs, chatbot, history, system_prompt,  mode='proofread', switch_prompt=None, opts=[], need_adjust_table_widths = True):
     import time, os, re
     from ..crazy_utils import request_gpt_model_multi_threads_with_very_awesome_ui_and_high_efficiency
