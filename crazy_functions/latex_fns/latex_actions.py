@@ -451,7 +451,7 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
     # 将final_tex中的 [!~!] 替换为 \n\n
-    final_tex = final_tex.replace('[!~!]', '\n\n')
+    # final_tex = final_tex.replace('[!~!]', '\n\n')
 
     # 如果是 doc2x 转换的调整表格
     if need_adjust_table_widths:

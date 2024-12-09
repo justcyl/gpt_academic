@@ -2650,6 +2650,16 @@ class DFA:
                     current_state[char] = {}
                 current_state = current_state[char]
             current_state['#'] = term  # 用特殊字符标记一个完整的词
+            
+            # 添加替换连字符为空格后的术语
+            if '-' in term.words:
+                space_term = term.words.replace('-', ' ')
+                current_state = self.states
+                for char in space_term.lower():
+                    if char not in current_state:
+                        current_state[char] = {}
+                    current_state = current_state[char]
+                current_state['#'] = term  # 使用同一个term对象，保持一致性
 
     def is_at_word_end(self, text, j):
         # 如果单词后面不足5个字符，则返回False
