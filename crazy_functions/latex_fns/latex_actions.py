@@ -350,7 +350,7 @@ def clean_tex_for_xelatex(final_tex: str) -> str:
     cleaned_tex = re.sub(combined_pattern, '', final_tex, flags=re.MULTILINE | re.DOTALL)
     
     # 删除可能产生的连续空行
-    cleaned_tex = re.sub(r'\n\s*\n', '\n', cleaned_tex)
+    # cleaned_tex = re.sub(r'\n\s*\n', '\n', cleaned_tex)
     
     return cleaned_tex.strip()
 
@@ -434,10 +434,8 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
         pfg.sp_file_result = []
         for i_say, gpt_say, orig_content in zip(gpt_response_collection[0::2], gpt_response_collection[1::2], pfg.sp_file_contents):
             pfg.sp_file_result.append(gpt_say)
+        
             # logger.info(f"=> {orig_content}】: {gpt_say}")
-            # 如果 orig_content 末尾有换行符，则 gpt_say 也加一个换行符
-            # if orig_content.endswith('\n') and not gpt_say.endswith('\n'):
-            #     pfg.sp_file_result[-1] += '\n'
             
         pfg.merge_result()
 
@@ -452,13 +450,16 @@ def Latex精细分解与转化(file_manifest, project_folder, llm_kwargs, plugin
     final_tex = lps.merge_result(pfg.file_result, mode, msg)
     objdump((lps, pfg.file_result, mode, msg), file=pj(project_folder,'merge_result.pkl'))
 
+    # 将final_tex中的 [!~!] 替换为 \n\n
+    final_tex = final_tex.replace('[!~!]', '\n\n')
+
     # 如果是 doc2x 转换的调整表格
     if need_adjust_table_widths:
         logger.info("调整表格")
         final_tex = adjust_table_widths(final_tex)
 
     # 删除 pdflatex 无用的命令
-    final_tex = clean_tex_for_xelatex(final_tex)
+    # final_tex = clean_tex_for_xelatex(final_tex)
 
     # 遍历 project_folder 中的pdf，如果pdf版本大于1.4，降级到1.4
     # downgrade_pdf_version(project_folder)
