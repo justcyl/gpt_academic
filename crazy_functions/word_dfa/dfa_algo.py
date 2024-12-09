@@ -2676,7 +2676,7 @@ class DFA:
             current_state = self.states
             j = i
             found = False
-            while j < n + max_word_wrap and text[j] in current_state:
+            while j < min(n, i + max_word_wrap) and text[j] in current_state:
                 current_state = current_state[text[j]]
                 j += 1
                 if '#' in current_state and self.is_at_word_end(text, j):
