@@ -443,7 +443,17 @@ def Latex英文纠错加PDF对比(
 
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= 插件主程序2 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
+import subprocess
+def compile_with_latexmk(tex_file, cwd):
+    logger.info(f"Compiling {tex_file} with latexmk")
 
+    result = subprocess.run(
+        ['latexmk', '-xelatex', '-silent', tex_file],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=cwd
+    )
 @CatchException
 def Latex翻译中文并重新编译PDF(
     txt,
@@ -578,16 +588,30 @@ def Latex翻译中文并重新编译PDF(
         )
 
     # <-------------- compile PDF ------------->
-    success = yield from 编译Latex(
-        chatbot,
-        history,
-        main_file_original="merge",
-        main_file_modified="merge_translate_zh",
-        mode="translate_zh",
-        work_folder_original=project_folder,
-        work_folder_modified=project_folder,
-        work_folder=project_folder,
-    )
+    # success = yield from 编译Latex(
+    #     chatbot,
+    #     history,
+    #     main_file_original="merge",
+    #     main_file_modified="merge_translate_zh",
+    #     mode="translate_zh",
+    #     work_folder_original=project_folder,
+    #     work_folder_modified=project_folder,
+    #     work_folder=project_folder,
+    # )
+    compile_with_latexmk("merge.tex", project_folder)
+    compile_with_latexmk("merge_translate_zh.tex",project_folder)
+
+    success = os.path.exists(pj(project_folder, 'merge_translate_zh.pdf'))
+    if success:
+        import shutil
+        yield from update_ui_lastest_msg(f'转化PDF编译已经成功, 正在尝试生成对比PDF, 请稍候 ...', chatbot, history)    # 刷新Gradio前端界面
+        result_pdf = pj(project_folder, 'merge_translate_zh.pdf') # get pdf path
+        if os.path.exists(pj(project_folder, '..', 'translation')):
+            shutil.copyfile(result_pdf, pj(project_folder, '..', 'translation', 'translate_zh.pdf'))
+        promote_file_to_downloadzone(result_pdf, rename_file=None, chatbot=chatbot)  # promote file to web UI
+        
+    else:
+        yield from update_ui_lastest_msg(f'转化PDF编译失败.', chatbot, history)   # 刷新Gradio前端界面
 
     # <-------------- zip PDF ------------->
     zip_res = zip_result(project_folder)
