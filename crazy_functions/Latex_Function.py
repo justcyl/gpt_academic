@@ -448,7 +448,7 @@ def compile_with_latexmk(tex_file, cwd):
     logger.info(f"Compiling {tex_file} with latexmk")
 
     result = subprocess.run(
-        ['latexmk', '-xelatex', '-silent', tex_file],
+        ['latexmk', '-xelatex', '-silent', '-f', tex_file],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
